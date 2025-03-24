@@ -6,24 +6,23 @@
     <title>Психологический портрет по Таро</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
             color: #333;
         }
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
-            background-color: #fff;
-            padding: 30px;
+            background-color: white;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         h1 {
+            color: #4a4a4a;
             text-align: center;
-            color: #2c3e50;
             margin-bottom: 30px;
         }
         .form-group {
@@ -34,8 +33,7 @@
             margin-bottom: 8px;
             font-weight: bold;
         }
-        input[type="date"],
-        select {
+        input, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -43,71 +41,103 @@
             font-size: 16px;
         }
         button {
-            background-color: #3498db;
+            background-color: #4CAF50;
             color: white;
-            border: none;
             padding: 12px 20px;
+            border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            display: block;
-            margin: 20px auto;
-            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 10px;
         }
         button:hover {
-            background-color: #2980b9;
+            background-color: #45a049;
         }
         .result {
             margin-top: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
             display: none;
         }
-        .result h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .position {
+        .card-position {
             margin-bottom: 25px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-left: 4px solid #3498db;
-            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+            padding-left: 15px;
         }
-        .position h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        .arcana-title {
+        .position-title {
             font-weight: bold;
-            color: #e74c3c;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .card-name {
+            color: #2196F3;
+            font-size: 18px;
             margin-bottom: 10px;
         }
-        .description {
-            text-align: justify;
-        }
-        .positive-negative {
-            display: flex;
-            margin-top: 15px;
+        .interpretation {
+            margin-bottom: 10px;
         }
         .positive, .negative {
-            flex: 1;
+            margin-top: 5px;
             padding: 10px;
+            border-radius: 5px;
         }
         .positive {
             background-color: #e8f5e9;
-            border-radius: 4px;
-            margin-right: 10px;
         }
         .negative {
             background-color: #ffebee;
-            border-radius: 4px;
         }
-        .positive h4, .negative h4 {
-            margin-top: 0;
+        .date-inputs-container {
+            display: flex;
+            gap: 10px;
+        }
+        .date-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #birthdate-legacy {
+            display: none; /* Скрываем старое поле */
+        }
+        @media (max-width: 768px) {
+            /* Стили для мобильных устройств */
+            .container {
+                padding: 15px;
+                margin: 0 10px;
+            }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            input, select, button {
+                font-size: 16px;
+            }
+            .card-position {
+                padding-left: 10px;
+            }
+        }
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .date-inputs input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .date-inputs {
+                flex-direction: row;
+            }
         }
     </style>
 </head>
@@ -117,6 +147,15 @@
         <div class="form-group">
             <label for="birthdate">Дата рождения:</label>
             <input type="text" id="birthdate" placeholder="ДД.ММ.ГГГГ" required>
+            <div class="date-inputs">
+                <input type="number" id="day" placeholder="День" min="1" max="31">
+                <input type="number" id="month" placeholder="Месяц" min="1" max="12">
+                <input type="number" id="year" placeholder="Год" min="1900" max="2100">
+            </div>
+        </div>
+        <div class="form-group" id="birthdate-legacy" style="display: none;">
+            <label for="birthdate">Дата рождения (старый формат):</label>
+            <input type="text" id="birthdate" placeholder="ДД.ММ.ГГГГ">
         </div>
         <div class="form-group">
             <label for="gender">Пол:</label>
@@ -135,6 +174,102 @@
 
     <script>
         // База данных с описаниями арканов по позициям
+        const arcanaDatabase = [
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: 'general', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: 'general', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТРИЦА', description: 'Императрица символизирует женственность, изобилие, плодородие и творческую реализацию. Это аркан природной силы, заботы и материального благополучия.', position: 'general', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: 'general', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: 'general', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: 'general', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: 'general', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: 'general', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: 'general', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: 'general', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: 'general', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: 'general', positive: true, negative: false },
+            { arcana: 'ТРАНСФОРМАЦИЯ', description: 'Трансформация (Смерть) символизирует фундаментальные перемены, завершение цикла и новое начало. Это аркан перерождения, очищения и неизбежных перемен.', position: 'general', positive: true, negative: false },
+            { arcana: 'РАВНОВЕСИЕ', description: 'Равновесие (Умеренность) символизирует гармонию, исцеление и соединение противоположностей. Это аркан баланса, адаптации и духовной алхимии.', position: 'general', positive: true, negative: false },
+            { arcana: 'ДЬЯВОЛ', description: 'Дьявол символизирует материальные искушения, зависимости и теневые аспекты личности. Это аркан ограничений, страстей и бессознательных импульсов.', position: 'general', positive: false, negative: true },
+            { arcana: 'БАШНЯ', description: 'Башня символизирует неожиданное разрушение, освобождение от ложных конструкций и резкие перемены. Это аркан кризиса, прозрения и освобождения.', position: 'general', positive: false, negative: true },
+            { arcana: 'ЗВЕЗДА', description: 'Звезда символизирует надежду, вдохновение и связь с высшими силами. Это аркан исцеления, творческого потока и духовного обновления.', position: 'general', positive: true, negative: false },
+            { arcana: 'ЛУНА', description: 'Луна символизирует иллюзии, подсознание и интуитивное познание. Это аркан тайн, страхов и глубинных психических процессов.', position: 'general', positive: false, negative: true },
+            { arcana: 'СОЛНЦЕ', description: 'Солнце символизирует радость, успех и ясность. Это аркан света, жизненной энергии и детской непосредственности.', position: 'general', positive: true, negative: false },
+            { arcana: 'СУД', description: 'Суд символизирует пробуждение, возрождение и трансформацию сознания. Это аркан призвания, духовного очищения и перехода на новый уровень.', position: 'general', positive: true, negative: false },
+            { arcana: 'МИР', description: 'Мир символизирует завершение цикла, целостность и достижение гармонии. Это аркан синтеза, интеграции опыта и полноты бытия.', position: 'general', positive: true, negative: false },
+            { arcana: 'ШУТ', description: 'Шут символизирует новое начало, спонтанность и творческий потенциал. Это аркан свободы, доверия к жизни и открытости новому опыту.', position: 'general', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '1', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '1', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТРИЦА', description: 'Императрица символизирует женственность, изобилие, плодородие и творческую реализацию. Это аркан природной силы, заботы и материального благополучия.', position: '1', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '1', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '1', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: '1', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: '1', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: '1', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: '1', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: '1', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: '1', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: '1', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '2', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '2', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТРИЦА', description: 'Императрица символизирует женственность, изобилие, плодородие и творческую реализацию. Это аркан природной силы, заботы и материального благополучия.', position: '2', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '2', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '2', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: '2', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: '2', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: '2', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: '2', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: '2', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: '2', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: '2', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '3', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '3', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТРИЦА', description: 'Императрица символизирует женственность, изобилие, плодородие и творческую реализацию. Это аркан природной силы, заботы и материального благополучия.', position: '3', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '3', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '3', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: '3', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: '3', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: '3', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: '3', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: '3', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: '3', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: '3', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '4', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '4', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '4', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '4', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: '4', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: '4', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: '4', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: '4', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: '4', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: '4', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: '4', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '5', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '5', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '5', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '5', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: '5', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: '5', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: '5', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: '5', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: '5', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: '5', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: '5', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '6', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '6', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '6', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '6', positive: true, negative: false },
+            { arcana: 'ВЛЮБЛЕННЫЕ', description: 'Влюбленные символизируют выбор, партнерство и гармонию противоположностей. Это аркан отношений, морального выбора и интеграции различных аспектов личности.', position: '6', positive: true, negative: false },
+            { arcana: 'КОЛЕСНИЦА', description: 'Колесница символизирует движение вперед, победу и контроль над противоположными силами. Это аркан амбиций, силы воли и целеустремленности.', position: '6', positive: true, negative: false },
+            { arcana: 'ПРАВОСУДИЕ', description: 'Правосудие символизирует баланс, справедливость и принятие последствий своих действий. Это аркан кармы, равновесия и объективной оценки.', position: '6', positive: true, negative: false },
+            { arcana: 'ОТШЕЛЬНИК', description: 'Отшельник символизирует уединение, самопознание и внутренний поиск. Это аркан мудрости, самоанализа и духовного пути.', position: '6', positive: true, negative: false },
+            { arcana: 'КОЛЕСО ФОРТУНЫ', description: 'Колесо Фортуны символизирует циклы жизни, судьбу и постоянные перемены. Это аркан непредсказуемости, удачи и кармических процессов.', position: '6', positive: true, negative: false },
+            { arcana: 'СИЛА', description: 'Сила символизирует внутреннюю мощь, терпение и способность управлять своими инстинктами. Это аркан духовной силы, самоконтроля и мягкого влияния.', position: '6', positive: true, negative: false },
+            { arcana: 'ПОВЕШЕННЫЙ', description: 'Повешенный символизирует жертвенность, новый взгляд на вещи и приостановку активных действий. Это аркан смены перспективы, принятия и отпускания.', position: '6', positive: true, negative: false },
+            { arcana: 'МАГ', description: 'Маг символизирует сознательное управление энергиями, творческий потенциал и возможность преобразовывать мир вокруг себя. Это аркан активного действия, интеллекта и мастерства.', position: '7a', positive: true, negative: false },
+            { arcana: 'ВЕРХОВНАЯ ЖРИЦА', description: 'Верховная Жрица символизирует интуицию, тайное знание и духовную мудрость. Это аркан пассивного восприятия, подсознания и скрытых возможностей.', position: '7a', positive: true, negative: false },
+            { arcana: 'ИМПЕРАТОР', description: 'Император символизирует власть, порядок, структуру и стабильность. Это аркан лидерства, контроля и организационных способностей.', position: '7a', positive: true, negative: false },
+            { arcana: 'ИЕРОФАНТ', description: 'Иерофант символизирует традиции, духовное наставничество и следование установленным правилам. Это аркан конформизма, обучения и системного подхода.', position: '7a', positive: true, negative: false },
         const arcanaDatabase = {
             // Общие описания арканов
             general: {
@@ -1122,90 +1257,110 @@
 
         // Функция для отображения результатов
         function displayResults(positions) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '<h2>Ваш психологический портрет</h2>';
-            resultDiv.style.display = 'block';
-            
-            // Перебираем все категории позиций
-            for (const category in positions) {
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category';
-                categoryDiv.innerHTML = `<h3>${category}</h3>`;
-                
-                // Перебираем все позиции в текущей категории
-                for (const posName in positions[category]) {
-                    const posInfo = positions[category][posName];
-                    const posNumber = posInfo.position;
-                    const arcanaNumber = posInfo.arcana;
+            const resultContainer = document.getElementById('result');
+            resultContainer.style.display = 'block';
+            resultContainer.innerHTML = '<h2>Ваш психологический портрет на основе Таро</h2>';
+
+            for (const pos in positions) {
+                if (positions.hasOwnProperty(pos)) {
+                    const arcanaName = positions[pos];
                     
-                    // Получаем данные об аркане для соответствующей позиции
-                    let arcanaData;
-                    if (arcanaDatabase[posNumber] && arcanaDatabase[posNumber][arcanaNumber]) {
-                        arcanaData = arcanaDatabase[posNumber][arcanaNumber];
-                    } else {
-                        // Если нет данных для конкретной позиции, используем общее описание
-                        arcanaData = {
-                            title: `${arcanaDatabase.general[arcanaNumber].name} в ${posName}`,
-                            description: `Данная позиция показывает влияние аркана ${arcanaDatabase.general[arcanaNumber].name} на соответствующий аспект вашей личности.`,
-                            positive: "Требуется дополнительный анализ",
-                            negative: "Требуется дополнительный анализ"
-                        };
+                    const div = document.createElement('div');
+                    div.className = 'card-position';
+                    
+                    let positionName = '';
+                    // Определение названия позиции
+                    switch(pos) {
+                        case '1': positionName = 'Потенциал детства (1-7 лет)'; break;
+                        case '2': positionName = 'Потенциал зрелых лет (7-14 лет)'; break;
+                        case '3': positionName = 'Потенциал более поздних лет (14-21 год)'; break;
+                        case '4': positionName = 'Комплексы и страхи'; break;
+                        case '5': positionName = 'Социальная маска'; break;
+                        case '6': positionName = 'Скрытые таланты'; break;
+                        case '7a': positionName = 'Миссия Души'; break;
+                        case '7b': positionName = 'Основные кризисы жизни'; break;
+                        case '8': positionName = 'Дары судьбы'; break;
+                        case '9': positionName = 'Кем был в прошлом воплощении'; break;
+                        case '10': positionName = 'Что делал в прошлом воплощении'; break;
+                        case '11': positionName = 'Кармическая задача'; break;
+                        case '12': positionName = 'Область психологической гармонии'; break;
+                        case '13': positionName = 'Самовосприятие'; break;
+                        case '14': positionName = 'Как воспринимают окружающие'; break;
+                        default: positionName = 'Позиция ' + pos;
                     }
                     
-                    // Создаем элемент для позиции
-                    const positionDiv = document.createElement('div');
-                    positionDiv.className = 'position';
-                    positionDiv.innerHTML = `
-                        <h3>${posName}: ${arcanaDatabase.general[arcanaNumber].name}</h3>
-                        <div class="arcana-title">${arcanaData.title || arcanaDatabase.general[arcanaNumber].name}</div>
-                        <div class="description">${arcanaData.description || arcanaDatabase.general[arcanaNumber].description}</div>
-                        <div class="positive-negative">
-                            <div class="positive">
-                                <h4>Положительные проявления:</h4>
-                                <p>${arcanaData.positive || "Информация дополняется"}</p>
-                            </div>
-                            <div class="negative">
-                                <h4>Негативные проявления:</h4>
-                                <p>${arcanaData.negative || "Информация дополняется"}</p>
-                            </div>
-                        </div>
+                    div.innerHTML = `
+                        <div class="position-title">${positionName}</div>
+                        <div class="card-name">${arcanaName}</div>
                     `;
                     
-                    categoryDiv.appendChild(positionDiv);
+                    // Поиск интерпретации для карты в данной позиции
+                    const interpretation = findInterpretation(arcanaName, pos);
+                    
+                    if (interpretation) {
+                        if (interpretation.description) {
+                            div.innerHTML += `<div class="interpretation">${interpretation.description}</div>`;
+                        }
+                        
+                        if (interpretation.positive) {
+                            div.innerHTML += `<div class="positive"><strong>Позитивное проявление:</strong> ${interpretation.positive}</div>`;
+                        }
+                        
+                        if (interpretation.negative) {
+                            div.innerHTML += `<div class="negative"><strong>Негативное проявление:</strong> ${interpretation.negative}</div>`;
+                        }
+                    } else {
+                        div.innerHTML += '<div class="interpretation">Требуется дополнительный анализ.</div>';
+                    }
+                    
+                    resultContainer.appendChild(div);
                 }
-                
-                resultDiv.appendChild(categoryDiv);
             }
+            
+            // Прокрутка к результатам
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
         // Обработчик нажатия кнопки расчета
         document.getElementById('calculate').addEventListener('click', function() {
             const birthdateInput = document.getElementById('birthdate');
-            if (!birthdateInput.value) {
-                alert('Пожалуйста, введите дату рождения!');
-                return;
-            }
-            
-            // Разбираем дату в формате ДД.ММ.ГГГГ
-            const datePattern = /^(\d{1,2})[\.\-\/](\d{1,2})[\.\-\/](\d{4})$/;
-            const dateMatch = birthdateInput.value.match(datePattern);
+            const dayInput = document.getElementById('day');
+            const monthInput = document.getElementById('month');
+            const yearInput = document.getElementById('year');
             
             let day, month, year;
             
-            if (dateMatch) {
-                day = parseInt(dateMatch[1], 10);
-                month = parseInt(dateMatch[2], 10);
-                year = parseInt(dateMatch[3], 10);
+            // Проверяем, использовались ли отдельные поля ввода
+            if (dayInput.value && monthInput.value && yearInput.value) {
+                day = parseInt(dayInput.value, 10);
+                month = parseInt(monthInput.value, 10);
+                year = parseInt(yearInput.value, 10);
+                
+                // Обновляем поле birthdateInput для совместимости
+                birthdateInput.value = `${day}.${month}.${year}`;
+            } else if (!birthdateInput.value) {
+                alert('Пожалуйста, введите дату рождения!');
+                return;
             } else {
-                // Если дата не соответствует паттерну, пробуем стандартный формат date input
-                const birthdate = new Date(birthdateInput.value);
-                if (isNaN(birthdate.getTime())) {
-                    alert('Пожалуйста, введите дату в формате ДД.ММ.ГГГГ');
-                    return;
+                // Разбираем дату в формате ДД.ММ.ГГГГ
+                const datePattern = /^(\d{1,2})[\.\-\/](\d{1,2})[\.\-\/](\d{4})$/;
+                const dateMatch = birthdateInput.value.match(datePattern);
+                
+                if (dateMatch) {
+                    day = parseInt(dateMatch[1], 10);
+                    month = parseInt(dateMatch[2], 10);
+                    year = parseInt(dateMatch[3], 10);
+                } else {
+                    // Если дата не соответствует паттерну, пробуем стандартный формат date input
+                    const birthdate = new Date(birthdateInput.value);
+                    if (isNaN(birthdate.getTime())) {
+                        alert('Пожалуйста, введите дату в формате ДД.ММ.ГГГГ или используйте поля День, Месяц, Год');
+                        return;
+                    }
+                    day = birthdate.getDate();
+                    month = birthdate.getMonth() + 1; // В JavaScript месяцы начинаются с 0
+                    year = birthdate.getFullYear();
                 }
-                day = birthdate.getDate();
-                month = birthdate.getMonth() + 1; // В JavaScript месяцы начинаются с 0
-                year = birthdate.getFullYear();
             }
             
             // Проверка валидности даты
@@ -1217,6 +1372,21 @@
             const positions = calculatePositions(day, month, year);
             displayResults(positions);
         });
+
+        // Синхронизация между отдельными полями и общим полем даты
+        document.getElementById('day').addEventListener('input', updateBirthdate);
+        document.getElementById('month').addEventListener('input', updateBirthdate);
+        document.getElementById('year').addEventListener('input', updateBirthdate);
+        
+        function updateBirthdate() {
+            const day = document.getElementById('day').value;
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            
+            if (day && month && year) {
+                document.getElementById('birthdate').value = `${day}.${month}.${year}`;
+            }
+        }
     </script>
 </body>
 </html> 
