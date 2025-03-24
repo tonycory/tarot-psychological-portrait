@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Психологический портрет по Таро (простая версия)</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #4a4a4a;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+        .card-position {
+            margin-bottom: 25px;
+            border-left: 4px solid #4CAF50;
+            padding-left: 15px;
+        }
+        .position-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .card-name {
+            color: #2196F3;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .interpretation {
+            margin-bottom: 10px;
+        }
+        .positive, .negative {
+            margin-top: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .positive {
+            background-color: #e8f5e9;
+        }
+        .negative {
+            background-color: #ffebee;
+        }
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .date-inputs input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .category {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .category h3 {
+            margin-top: 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .date-inputs {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Психологический портрет на основе Таро</h1>
+        <p style="text-align: center;">(упрощенная версия)</p>
+        
+        <div class="form-group">
+            <label>Дата рождения:</label>
+            <div class="date-inputs">
+                <input type="number" id="day" placeholder="День" min="1" max="31">
+                <input type="number" id="month" placeholder="Месяц" min="1" max="12">
+                <input type="number" id="year" placeholder="Год" min="1900" max="2100">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="gender">Пол:</label>
+            <select id="gender">
+                <option value="male">Мужской</option>
+                <option value="female">Женский</option>
+            </select>
+        </div>
+        
+        <button id="calculate">Рассчитать портрет</button>
+        
+        <div class="result" id="result">
+            <h2>Ваш психологический портрет</h2>
+            <!-- Здесь будут отображаться результаты -->
+        </div>
+    </div>
+
+    <script>
+        // Объявляем базу данных для арканов
+        const arcanaNames = {
+            1: "МАГ",
+            2: "ВЕРХОВНАЯ ЖРИЦА",
+            3: "ИМПЕРАТРИЦА",
+            4: "ИМПЕРАТОР",
+            5: "ИЕРОФАНТ",
+            6: "ВЛЮБЛЕННЫЕ",
+            7: "КОЛЕСНИЦА",
+            8: "ПРАВОСУДИЕ",
+            9: "ОТШЕЛЬНИК",
+            10: "КОЛЕСО ФОРТУНЫ",
+            11: "СИЛА",
+            12: "ПОВЕШЕННЫЙ",
+            13: "ТРАНСФОРМАЦИЯ",
+            14: "РАВНОВЕСИЕ",
+            15: "ДЬЯВОЛ",
+            16: "БАШНЯ",
+            17: "ЗВЕЗДА",
+            18: "ЛУНА",
+            19: "СОЛНЦЕ",
+            20: "СУД",
+            21: "МИР",
+            22: "ШУТ",
+            0: "ШУТ"
+        };
+
+        // Функция для расчета позиций
+        function calculatePositions(day, month, year) {
+            // Приведение чисел к диапазону арканов (1-22)
+            function reduceToArcana(num) {
+                while (num > 22) num -= 22;
+                return num === 0 ? 22 : num;
+            }
+
+            // Базовые позиции
+            const pos1 = reduceToArcana(day);
+            const pos2 = reduceToArcana(month);
+            const pos3 = reduceToArcana([...year.toString()].reduce((sum, digit) => sum + parseInt(digit), 0));
+            
+            // Производные позиции
+            const pos4 = reduceToArcana(pos1 + pos2);
+            const pos5 = reduceToArcana(pos2 + pos3);
+            const pos6 = reduceToArcana(pos4 + pos5);
+            
+            const pos7a = reduceToArcana(pos1 + pos5);
+            const pos7b = reduceToArcana(pos4 + pos3);
+            const pos8 = reduceToArcana(pos2 + pos6);
+            
+            const pos9 = reduceToArcana(Math.abs(pos1 - pos2));
+            const pos10 = reduceToArcana(Math.abs(pos2 - pos3));
+            const pos11 = reduceToArcana(Math.abs(pos9 - pos10));
+            
+            const pos12 = reduceToArcana(pos7a + pos8);
+            const pos13 = reduceToArcana(pos1 + pos4 + pos6);
+            const pos14 = reduceToArcana(pos3 + pos5 + pos6);
+            
+            return {
+                "Базовые позиции (жизненные этапы)": {
+                    "Позиция 1 (Потенциал детства)": { position: 1, arcana: pos1 },
+                    "Позиция 2 (Основные уроки зрелости)": { position: 2, arcana: pos2 },
+                    "Позиция 3 (Потенциал поздних лет)": { position: 3, arcana: pos3 }
+                },
+                "Психологические аспекты личности": {
+                    "Позиция 4 (Комплексы и страхи)": { position: 4, arcana: pos4 },
+                    "Позиция 5 (Социальная маска)": { position: 5, arcana: pos5 },
+                    "Позиция 6 (Скрытые таланты)": { position: 6, arcana: pos6 }
+                },
+                "Кармические аспекты": {
+                    "Позиция 7a (Миссия Души)": { position: "7a", arcana: pos7a },
+                    "Позиция 7b (Основные кризисы жизни)": { position: "7b", arcana: pos7b },
+                    "Позиция 8 (Дары судьбы)": { position: 8, arcana: pos8 },
+                    "Позиция 9 (Кем был в прошлом воплощении)": { position: 9, arcana: pos9 },
+                    "Позиция 10 (Что делал в прошлом воплощении)": { position: 10, arcana: pos10 },
+                    "Позиция 11 (Кармическая задача)": { position: 11, arcana: pos11 }
+                },
+                "Области комфорта и дискомфорта": {
+                    "Позиция 12 (Область психологической гармонии)": { position: 12, arcana: pos12 },
+                    "Позиция 13 (Самовосприятие)": { position: 13, arcana: pos13 },
+                    "Позиция 14 (Как воспринимают окружающие)": { position: 14, arcana: pos14 }
+                }
+            };
+        }
+
+        // Функция для отображения результатов
+        function displayResults(positions) {
+            const resultContainer = document.getElementById('result');
+            resultContainer.style.display = 'block';
+            resultContainer.innerHTML = '<h2>Ваш психологический портрет на основе Таро</h2>';
+
+            // Отладочная информация
+            console.log("Отображение результатов:", positions);
+
+            // Создаем отображение результатов
+            for (const category in positions) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.innerHTML = `<h3>${category}</h3>`;
+                resultContainer.appendChild(categoryDiv);
+                
+                for (const posName in positions[category]) {
+                    const posData = positions[category][posName];
+                    const arcanaNum = posData.arcana;
+                    const arcanaName = arcanaNames[arcanaNum] || "Неизвестный аркан";
+                    
+                    const div = document.createElement('div');
+                    div.className = 'card-position';
+                    
+                    div.innerHTML = `
+                        <div class="position-title">${posName}</div>
+                        <div class="card-name">${arcanaName} (аркан ${arcanaNum})</div>
+                        <div class="interpretation">
+                            ${arcanaName} в данной позиции символизирует важный аспект вашей личности.
+                        </div>
+                    `;
+                    
+                    categoryDiv.appendChild(div);
+                }
+            }
+            
+            // Прокрутка к результатам
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Обработчик нажатия кнопки расчета
+        document.getElementById('calculate').addEventListener('click', function() {
+            const dayInput = document.getElementById('day');
+            const monthInput = document.getElementById('month');
+            const yearInput = document.getElementById('year');
+            
+            // Проверяем, заполнены ли все поля
+            if (!dayInput.value || !monthInput.value || !yearInput.value) {
+                alert('Пожалуйста, заполните все поля даты рождения!');
+                return;
+            }
+            
+            const day = parseInt(dayInput.value, 10);
+            const month = parseInt(monthInput.value, 10);
+            const year = parseInt(yearInput.value, 10);
+            
+            // Проверка валидности даты
+            if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > new Date().getFullYear()) {
+                alert('Пожалуйста, введите корректную дату рождения');
+                return;
+            }
+            
+            // Выводим отладочную информацию
+            console.log(`Расчет для даты: ${day}.${month}.${year}`);
+            
+            // Рассчитываем позиции и отображаем результаты
+            const positions = calculatePositions(day, month, year);
+            displayResults(positions);
+        });
+    </script>
+</body>
+</html> 
