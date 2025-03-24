@@ -1197,8 +1197,12 @@
                     
                     // Отладка - выводим информацию о проверяемой позиции
                     console.log(`Проверяем позицию ${posName}: позиция=${posNumber}, аркан=${arcanaNumber}`);
-                    console.log(`Проверяем наличие в базе: arcanaDatabase[${posNumber}][${arcanaNumber}] =`, 
-                        arcanaDatabase[posNumber] ? (arcanaDatabase[posNumber][arcanaNumber] ? "найдено" : "не найдено") : "позиция не найдена");
+                    console.log(`Проверяем наличие в базе: arcanaDatabase[${posNumber}] =`, 
+                        arcanaDatabase[posNumber] ? "позиция найдена" : "позиция не найдена");
+                    if (arcanaDatabase[posNumber]) {
+                        console.log(`Проверяем наличие в базе: arcanaDatabase[${posNumber}][${arcanaNumber}] =`, 
+                            arcanaDatabase[posNumber][arcanaNumber] ? "найдено" : "не найдено");
+                    }
                     
                     // Получаем данные об аркане для соответствующей позиции
                     let arcanaData;
@@ -1206,14 +1210,52 @@
                         arcanaData = arcanaDatabase[posNumber][arcanaNumber];
                         console.log(`Найдено описание для позиции ${posNumber} и аркана ${arcanaNumber}:`, arcanaData);
                     } else {
-                        // Если нет данных для конкретной позиции, используем общее описание
-                        arcanaData = {
-                            title: `${arcanaDatabase.general[arcanaNumber].name} в ${posName}`,
-                            description: `Данная позиция показывает влияние аркана ${arcanaDatabase.general[arcanaNumber].name} на соответствующий аспект вашей личности.`,
-                            positive: "Требуется дополнительный анализ",
-                            negative: "Требуется дополнительный анализ"
-                        };
-                        console.log(`Использована заглушка для позиции ${posNumber} и аркана ${arcanaNumber}`);
+                        // Если нет данных для конкретной позиции, пробуем еще раз с позицией как строкой
+                        // (для позиций 7a и 7b, которые могут быть сохранены как строки)
+                        if (typeof posNumber === 'string' && arcanaDatabase[posNumber] && arcanaDatabase[posNumber][arcanaNumber]) {
+                            arcanaData = arcanaDatabase[posNumber][arcanaNumber];
+                            console.log(`Найдено описание для строковой позиции ${posNumber} и аркана ${arcanaNumber}:`, arcanaData);
+                        } else {
+                            // Если все еще нет данных, используем общее описание
+                            arcanaData = {
+                                title: `${arcanaDatabase.general[arcanaNumber].name} в ${posName}`,
+                                description: `Данная позиция показывает влияние аркана ${arcanaDatabase.general[arcanaNumber].name} на соответствующий аспект вашей личности.`,
+                                positive: "Требуется дополнительный анализ",
+                                negative: "Требуется дополнительный анализ"
+                            };
+                            console.log(`Использована заглушка для позиции ${posNumber} и аркана ${arcanaNumber}`);
+                            
+                            // Проверим все имеющиеся ключи в базе данных для этой позиции
+                            if (arcanaDatabase[posNumber]) {
+                                console.log(`Доступные арканы для позиции ${posNumber}:`, Object.keys(arcanaDatabase[posNumber]));
+                            }
+                            
+                            // Проверим наличие позиции и аркана в базе данных (может быть проблема с типами данных)
+                            console.log(`Тип posNumber: ${typeof posNumber}, Значение: ${posNumber}`);
+                            console.log(`Тип arcanaNumber: ${typeof arcanaNumber}, Значение: ${arcanaNumber}`);
+                            
+                            // Попробуем преобразовать числа в строки и наоборот
+                            const posNumAsString = String(posNumber);
+                            const posNumAsNumber = Number(posNumber);
+                            const arcanaNumAsString = String(arcanaNumber);
+                            const arcanaNumAsNumber = Number(arcanaNumber);
+                            
+                            console.log(`Проверка с преобразованием типов:`);
+                            console.log(`arcanaDatabase["${posNumAsString}"] существует: ${Boolean(arcanaDatabase[posNumAsString])}`);
+                            if (!isNaN(posNumAsNumber)) {
+                                console.log(`arcanaDatabase[${posNumAsNumber}] существует: ${Boolean(arcanaDatabase[posNumAsNumber])}`);
+                            }
+                            
+                            if (arcanaDatabase[posNumAsString]) {
+                                console.log(`arcanaDatabase["${posNumAsString}"]["${arcanaNumAsString}"] существует: ${Boolean(arcanaDatabase[posNumAsString][arcanaNumAsString])}`);
+                                console.log(`arcanaDatabase["${posNumAsString}"][${arcanaNumAsNumber}] существует: ${Boolean(arcanaDatabase[posNumAsString][arcanaNumAsNumber])}`);
+                            }
+                            
+                            if (!isNaN(posNumAsNumber) && arcanaDatabase[posNumAsNumber]) {
+                                console.log(`arcanaDatabase[${posNumAsNumber}]["${arcanaNumAsString}"] существует: ${Boolean(arcanaDatabase[posNumAsNumber][arcanaNumAsString])}`);
+                                console.log(`arcanaDatabase[${posNumAsNumber}][${arcanaNumAsNumber}] существует: ${Boolean(arcanaDatabase[posNumAsNumber][arcanaNumAsNumber])}`);
+                            }
+                        }
                     }
                     
                     // Создаем элемент для позиции
