@@ -116,7 +116,7 @@
         <h1>Психологический портрет по Таро</h1>
         <div class="form-group">
             <label for="birthdate">Дата рождения:</label>
-            <input type="date" id="birthdate" required>
+            <input type="text" id="birthdate" placeholder="ДД.ММ.ГГГГ" required>
         </div>
         <div class="form-group">
             <label for="gender">Пол:</label>
@@ -1186,10 +1186,33 @@
                 return;
             }
             
-            const birthdate = new Date(birthdateInput.value);
-            const day = birthdate.getDate();
-            const month = birthdate.getMonth() + 1; // В JavaScript месяцы начинаются с 0
-            const year = birthdate.getFullYear();
+            // Разбираем дату в формате ДД.ММ.ГГГГ
+            const datePattern = /^(\d{1,2})[\.\-\/](\d{1,2})[\.\-\/](\d{4})$/;
+            const dateMatch = birthdateInput.value.match(datePattern);
+            
+            let day, month, year;
+            
+            if (dateMatch) {
+                day = parseInt(dateMatch[1], 10);
+                month = parseInt(dateMatch[2], 10);
+                year = parseInt(dateMatch[3], 10);
+            } else {
+                // Если дата не соответствует паттерну, пробуем стандартный формат date input
+                const birthdate = new Date(birthdateInput.value);
+                if (isNaN(birthdate.getTime())) {
+                    alert('Пожалуйста, введите дату в формате ДД.ММ.ГГГГ');
+                    return;
+                }
+                day = birthdate.getDate();
+                month = birthdate.getMonth() + 1; // В JavaScript месяцы начинаются с 0
+                year = birthdate.getFullYear();
+            }
+            
+            // Проверка валидности даты
+            if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > new Date().getFullYear()) {
+                alert('Пожалуйста, введите корректную дату рождения');
+                return;
+            }
             
             const positions = calculatePositions(day, month, year);
             displayResults(positions);
