@@ -1261,41 +1261,77 @@
             resultContainer.style.display = 'block';
             resultContainer.innerHTML = '<h2>Ваш психологический портрет на основе Таро</h2>';
 
-            for (const pos in positions) {
-                if (positions.hasOwnProperty(pos)) {
-                    const arcanaName = positions[pos];
+            // Функция для поиска интерпретации аркана в данной позиции
+            function findInterpretation(arcanaNum, position) {
+                // Получаем название аркана по его номеру
+                const getArcanaName = (num) => {
+                    const arcanaNames = {
+                        1: "МАГ",
+                        2: "ВЕРХОВНАЯ ЖРИЦА",
+                        3: "ИМПЕРАТРИЦА",
+                        4: "ИМПЕРАТОР",
+                        5: "ИЕРОФАНТ",
+                        6: "ВЛЮБЛЕННЫЕ",
+                        7: "КОЛЕСНИЦА",
+                        8: "ПРАВОСУДИЕ",
+                        9: "ОТШЕЛЬНИК",
+                        10: "КОЛЕСО ФОРТУНЫ",
+                        11: "СИЛА",
+                        12: "ПОВЕШЕННЫЙ",
+                        13: "ТРАНСФОРМАЦИЯ",
+                        14: "РАВНОВЕСИЕ",
+                        15: "ДЬЯВОЛ",
+                        16: "БАШНЯ",
+                        17: "ЗВЕЗДА",
+                        18: "ЛУНА",
+                        19: "СОЛНЦЕ",
+                        20: "СУД",
+                        21: "МИР",
+                        22: "ШУТ",
+                        0: "ШУТ"
+                    };
+                    return arcanaNames[num] || "Неизвестный аркан";
+                };
+                
+                const arcanaName = getArcanaName(arcanaNum);
+                
+                // Проверяем, есть ли в базе интерпретация для данного аркана в данной позиции
+                if (arcanaDatabase[position] && arcanaDatabase[position][arcanaNum]) {
+                    return arcanaDatabase[position][arcanaNum];
+                }
+                
+                // Если нет конкретной интерпретации, возвращаем общее описание аркана
+                return {
+                    title: `${arcanaName} в позиции ${position}`,
+                    description: `Требуется дополнительный анализ для ${arcanaName} в позиции ${position}.`,
+                    positive: "",
+                    negative: ""
+                };
+            }
+
+            for (const category in positions) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.innerHTML = `<h3>${category}</h3>`;
+                resultContainer.appendChild(categoryDiv);
+                
+                for (const posName in positions[category]) {
+                    const posData = positions[category][posName];
+                    const arcanaNum = posData.arcana;
+                    const posNumber = posData.position;
+                    
+                    const arcanaName = getArcanaName(arcanaNum);
                     
                     const div = document.createElement('div');
                     div.className = 'card-position';
                     
-                    let positionName = '';
-                    // Определение названия позиции
-                    switch(pos) {
-                        case '1': positionName = 'Потенциал детства (1-7 лет)'; break;
-                        case '2': positionName = 'Потенциал зрелых лет (7-14 лет)'; break;
-                        case '3': positionName = 'Потенциал более поздних лет (14-21 год)'; break;
-                        case '4': positionName = 'Комплексы и страхи'; break;
-                        case '5': positionName = 'Социальная маска'; break;
-                        case '6': positionName = 'Скрытые таланты'; break;
-                        case '7a': positionName = 'Миссия Души'; break;
-                        case '7b': positionName = 'Основные кризисы жизни'; break;
-                        case '8': positionName = 'Дары судьбы'; break;
-                        case '9': positionName = 'Кем был в прошлом воплощении'; break;
-                        case '10': positionName = 'Что делал в прошлом воплощении'; break;
-                        case '11': positionName = 'Кармическая задача'; break;
-                        case '12': positionName = 'Область психологической гармонии'; break;
-                        case '13': positionName = 'Самовосприятие'; break;
-                        case '14': positionName = 'Как воспринимают окружающие'; break;
-                        default: positionName = 'Позиция ' + pos;
-                    }
-                    
                     div.innerHTML = `
-                        <div class="position-title">${positionName}</div>
-                        <div class="card-name">${arcanaName}</div>
+                        <div class="position-title">${posName}</div>
+                        <div class="card-name">${arcanaName} (аркан ${arcanaNum})</div>
                     `;
                     
                     // Поиск интерпретации для карты в данной позиции
-                    const interpretation = findInterpretation(arcanaName, pos);
+                    const interpretation = findInterpretation(arcanaNum, posNumber);
                     
                     if (interpretation) {
                         if (interpretation.description) {
@@ -1313,12 +1349,42 @@
                         div.innerHTML += '<div class="interpretation">Требуется дополнительный анализ.</div>';
                     }
                     
-                    resultContainer.appendChild(div);
+                    categoryDiv.appendChild(div);
                 }
             }
             
             // Прокрутка к результатам
             resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Функция для получения названия аркана по его номеру
+        function getArcanaName(num) {
+            const arcanaNames = {
+                1: "МАГ",
+                2: "ВЕРХОВНАЯ ЖРИЦА",
+                3: "ИМПЕРАТРИЦА",
+                4: "ИМПЕРАТОР",
+                5: "ИЕРОФАНТ",
+                6: "ВЛЮБЛЕННЫЕ",
+                7: "КОЛЕСНИЦА",
+                8: "ПРАВОСУДИЕ",
+                9: "ОТШЕЛЬНИК",
+                10: "КОЛЕСО ФОРТУНЫ",
+                11: "СИЛА",
+                12: "ПОВЕШЕННЫЙ",
+                13: "ТРАНСФОРМАЦИЯ",
+                14: "РАВНОВЕСИЕ",
+                15: "ДЬЯВОЛ",
+                16: "БАШНЯ",
+                17: "ЗВЕЗДА",
+                18: "ЛУНА",
+                19: "СОЛНЦЕ",
+                20: "СУД",
+                21: "МИР",
+                22: "ШУТ",
+                0: "ШУТ"
+            };
+            return arcanaNames[num] || "Неизвестный аркан";
         }
 
         // Обработчик нажатия кнопки расчета
